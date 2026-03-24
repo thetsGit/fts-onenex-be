@@ -2,6 +2,11 @@ import { type Flight } from "./types/entities";
 
 import { FLIGHTS_ENDPOINT } from "./config";
 
+import { validateEnvironment } from "./validateEnv";
+
+// Validate environment variables at startup
+validateEnvironment();
+
 const server = Bun.serve({
   // `routes` requires Bun v1.2.3+
   routes: {
