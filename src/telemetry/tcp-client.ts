@@ -7,8 +7,9 @@ import type {
 
 import {
   TCP_SUBSCRIPTION_INTERVAL_MS,
-  TCP_RECONNECT_DELAY,
+  TCP_INITIAL_RECONNECT_DELAY_MS,
   type TelemetryStatus,
+  TCP_MAX_RECONNECT_DELAY_MS,
 } from "./constants";
 
 import { parsePacket, type ParsePacketReturn } from "./parser";
@@ -40,6 +41,9 @@ export class TcpClient {
 
   private socket: Awaited<ReturnType<typeof Bun.connect>> | null = null;
   private isIntentionallyClosed: boolean = false;
+  private initialReconnectDelay: NonNullable<
+    TcpClientOptions["reconnectDelay"]
+  >;
   private reconnectDelay: NonNullable<TcpClientOptions["reconnectDelay"]>;
   private reconnectionTimeoutId: Timer | null = null;
 
@@ -48,7 +52,7 @@ export class TcpClient {
     port,
     flightId,
     intervalMs = TCP_SUBSCRIPTION_INTERVAL_MS,
-    reconnectDelay = TCP_RECONNECT_DELAY,
+    reconnectDelay = TCP_INITIAL_RECONNECT_DELAY_MS,
 
     onData,
     onStatusChange,
@@ -57,6 +61,7 @@ export class TcpClient {
     this.port = port;
     this.hostname = hostname;
     this.intervalMs = intervalMs;
+    this.initialReconnectDelay = reconnectDelay;
     this.reconnectDelay = reconnectDelay;
 
     this.onData = onData;
@@ -74,6 +79,12 @@ export class TcpClient {
       // Reset stream buffer which will be meaningless after a new connection established
       this.streamBuffer = new StreamBuffer();
       this.connect();
+
+      // Exponential backoff for resource optimization
+      this.reconnectDelay = Math.min(
+        this.reconnectDelay * 2,
+        TCP_MAX_RECONNECT_DELAY_MS,
+      );
     }, this.reconnectDelay);
   }
 
@@ -115,6 +126,9 @@ export class TcpClient {
             } satisfies TelemetryTcpSubscriptionPayload;
 
             socket.write(JSON.stringify(subscriptionMessage));
+
+            // Reset Exponential backoff on connection success
+            this.reconnectDelay = this.initialReconnectDelay;
           },
           close: (socket, error) => {
             // TODO: Make error message more meaningful

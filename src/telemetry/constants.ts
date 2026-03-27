@@ -6,4 +6,5 @@ export const STATUSES = ["VALID", "CORRUPTED", "ERROR", "CLOSED"] as const;
 export type TelemetryStatus = (typeof STATUSES)[number];
 
 export const TCP_SUBSCRIPTION_INTERVAL_MS = 3000; // Min: 100ms, Max: 10000ms (tcp server's rule)
-export const TCP_RECONNECT_DELAY = 3000;
+export const TCP_INITIAL_RECONNECT_DELAY_MS = 3000;
+export const TCP_MAX_RECONNECT_DELAY_MS = 1800000; // Max delay: 30mins
