@@ -9,7 +9,7 @@ import {
   type TelemetryStatus,
 } from "./constants";
 
-type ParsePacketReturn =
+export type ParsePacketReturn =
   | {
       status: Extract<TelemetryStatus, "CORRUPTED">;
       message: string;

@@ -2,6 +2,7 @@ import { FLIGHTS_ENDPOINT } from "@/config";
 
 import { type Flight } from "@/types/entities";
 
+// Proxy api for flight lists
 export async function getFlights() {
   try {
     const response = await fetch(FLIGHTS_ENDPOINT);

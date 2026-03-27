@@ -6,7 +6,9 @@ type RequiredEnvVars = {
 };
 
 const requiredVariables: RequiredEnvVars[] = [
-  { name: "FTS_API_URL", description: "Onenex's FTS API" },
+  { name: "FTS_API_BASE_URL", description: "Onenex's FTS source base API url" },
+  { name: "FTS_API_PORT", description: "Onenex's FTS source API port" },
+  { name: "FTS_TCP_HOSTNAME", description: "Onenex's FTS TCP server hostname" },
 ];
 
 export function validateEnvironment(): void {
