@@ -2,7 +2,7 @@ import type { Flight } from "@/types/entities";
 
 import { getWsTelemetryTopic } from "@/config";
 
-import { TcpClient } from "./tcp-client";
+import { TcpClient } from "./TcpClient";
 
 type FlightManagerOptions = {
   server: Bun.Server<unknown>;

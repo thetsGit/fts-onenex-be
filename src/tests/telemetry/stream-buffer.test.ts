@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import { StreamBuffer } from "@/telemetry/stream-buffer";
+import { StreamBuffer } from "@/telemetry/StreamBuffer";
 
 import { buildPacket } from "@/tests/helpers";
 

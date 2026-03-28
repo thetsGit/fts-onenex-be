@@ -2,7 +2,7 @@ import { getFlightsService } from "@/services/flights";
 
 import { FLIGHT_LIST_SYNC_INTERVAL_MS } from "./constants";
 
-import type { FlightManager } from "./flight-manager";
+import type { FlightManager } from "./FlightManager";
 
 export async function startTelemetryService(flightManager: FlightManager) {
   async function action() {

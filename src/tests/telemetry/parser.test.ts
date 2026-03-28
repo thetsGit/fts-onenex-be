@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import { parsePacket } from "@/telemetry/parser";
+import { parsePacket } from "@/telemetry/parsePacket";
 
 import { buildPacket } from "@/tests/helpers";
 

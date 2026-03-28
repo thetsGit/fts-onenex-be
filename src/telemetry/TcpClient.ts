@@ -8,9 +8,9 @@ import {
   TCP_MAX_RECONNECT_DELAY_MS,
 } from "./constants";
 
-import { parsePacket } from "./parser";
+import { parsePacket } from "./parsePacket";
 
-import { StreamBuffer } from "./stream-buffer";
+import { StreamBuffer } from "./StreamBuffer";
 
 type TcpClientOptions = {
   hostname?: string;
