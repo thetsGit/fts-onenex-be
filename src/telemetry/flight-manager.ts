@@ -1,6 +1,6 @@
 import type { Flight } from "@/types/entities";
 
-import { getWsTelemetryTopic } from "./constants";
+import { getWsTelemetryTopic } from "@/config";
 
 import { TcpClient } from "./tcp-client";
 
@@ -10,18 +10,18 @@ type FlightManagerOptions = {
 };
 
 export class FlightManager {
-  private server: Bun.Server<unknown> | null = null;
-  private flights: Flight[] = [];
-  private tcpClients: Map<Flight["id"], TcpClient> = new Map();
+  private _server: Bun.Server<unknown> | null = null;
+  private _flights: Flight[] = [];
+  private _tcpClients: Map<Flight["id"], TcpClient> = new Map();
 
   constructor({ server, flights }: FlightManagerOptions) {
-    this.server = server;
+    this._server = server;
     if (flights) this.addMany(flights);
   }
 
   private addMany(flightsToAdd: Flight[]) {
     // Append the new list to the global list
-    this.flights.push(...flightsToAdd);
+    this._flights.push(...flightsToAdd);
 
     flightsToAdd.forEach((flight) => {
       const { telemetryPort: port, id: flightId } = flight;
@@ -30,7 +30,7 @@ export class FlightManager {
         port,
         flightId,
         onData: (result) => {
-          this.server?.publish(
+          this._server?.publish(
             getWsTelemetryTopic(flightId),
             JSON.stringify(result),
           );
@@ -41,13 +41,13 @@ export class FlightManager {
       tcpClient.connect();
 
       // Sync new tcp connection with global tcp list
-      this.tcpClients.set(flightId, tcpClient);
+      this._tcpClients.set(flightId, tcpClient);
     });
   }
 
   private removeMany(flightsToRemove: Flight[]) {
     // Remove flights from the global list
-    this.flights = this.flights.filter(
+    this._flights = this._flights.filter(
       (activeFlight) =>
         !flightsToRemove.find(
           ({ id: idToRemove }) => activeFlight["id"] === idToRemove,
@@ -56,9 +56,9 @@ export class FlightManager {
 
     // Also close tcp connections of the removed flights
     flightsToRemove.forEach(({ id: idToRemove }) => {
-      if (this.tcpClients.has(idToRemove)) {
-        this.tcpClients.get(idToRemove)?.close();
-        this.tcpClients.delete(idToRemove);
+      if (this._tcpClients.has(idToRemove)) {
+        this._tcpClients.get(idToRemove)?.close();
+        this._tcpClients.delete(idToRemove);
       }
     });
   }
@@ -66,15 +66,21 @@ export class FlightManager {
   public sync(upToDateFlights: Flight[]) {
     const flightsToAdd = upToDateFlights.filter(
       (flight) =>
-        !this.flights.find(({ id: existingId }) => existingId === flight["id"]),
+        !this._flights.find(
+          ({ id: existingId }) => existingId === flight["id"],
+        ),
     );
 
-    const flightsToRemove = this.flights.filter(
+    const flightsToRemove = this._flights.filter(
       (existingFlight) =>
         !upToDateFlights.find(({ id }) => existingFlight["id"] === id),
     );
 
     this.addMany(flightsToAdd);
     this.removeMany(flightsToRemove);
+  }
+
+  public get flights() {
+    return this._flights;
   }
 }

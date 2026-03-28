@@ -1,7 +1,13 @@
-import { fallbackJson, fallback } from "@/routes/general";
+import { validateEnvironment } from "@/config";
+
+import { withCors } from "@/middlewares";
+
+import { fallbackJson, upgradeToWSOrFallback } from "@/routes/general";
 import { getFlights } from "@/routes/flights";
 
-import { validateEnvironment } from "./validateEnv";
+import { onWSMessage } from "@/ws";
+
+import { FlightManager, startTelemetryService } from "@/telemetry";
 
 // Validate environment variables at startup
 validateEnvironment();
@@ -10,7 +16,10 @@ const server = Bun.serve({
   // `routes` requires Bun v1.2.3+
   routes: {
     // Proxy 'flights' endpoint
-    "/api/flights": getFlights,
+    "/api/flights": {
+      OPTIONS: withCors(() => new Response(null, { status: 204 })),
+      GET: withCors(getFlights),
+    },
 
     // Wildcard route for all routes that start with "/api/" and aren't otherwise matched
     "/api/*": fallbackJson,
@@ -18,7 +27,17 @@ const server = Bun.serve({
 
   // (optional) fallback for unmatched routes:
   // Required if Bun's version < 1.2.3
-  fetch: fallback,
+  fetch: upgradeToWSOrFallback,
+
+  websocket: {
+    message: onWSMessage,
+  },
 });
 
-console.log(`Server running at ${server.url}`);
+/**
+ * Launch the telemetry service at start up
+ */
+
+const flightManager = new FlightManager({ server });
+
+startTelemetryService(flightManager);

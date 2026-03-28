@@ -23,22 +23,22 @@ type TcpClientOptions = {
 };
 
 export class TcpClient {
-  private hostname: NonNullable<TcpClientOptions["hostname"]>;
-  private port: TcpClientOptions["port"];
-  private flightId: TcpClientOptions["flightId"];
-  private intervalMs: NonNullable<TcpClientOptions["intervalMs"]>;
+  private _hostname: NonNullable<TcpClientOptions["hostname"]>;
+  private _port: TcpClientOptions["port"];
+  private _flightId: TcpClientOptions["flightId"];
+  private _intervalMs: NonNullable<TcpClientOptions["intervalMs"]>;
 
-  private onData: TcpClientOptions["onData"];
+  private _onData: TcpClientOptions["onData"];
 
-  private streamBuffer = new StreamBuffer();
+  private _streamBuffer = new StreamBuffer();
 
-  private socket: Awaited<ReturnType<typeof Bun.connect>> | null = null;
-  private isIntentionallyClosed: boolean = false;
-  private initialReconnectDelay: NonNullable<
+  private _socket: Awaited<ReturnType<typeof Bun.connect>> | null = null;
+  private _isIntentionallyClosed: boolean = false;
+  private _initialReconnectDelay: NonNullable<
     TcpClientOptions["reconnectDelay"]
   >;
-  private reconnectDelay: NonNullable<TcpClientOptions["reconnectDelay"]>;
-  private reconnectionTimeoutId: Timer | null = null;
+  private _reconnectDelay: NonNullable<TcpClientOptions["reconnectDelay"]>;
+  private _reconnectionTimeoutId: Timer | null = null;
 
   constructor({
     hostname = FTS_TCP_HOSTNAME,
@@ -49,47 +49,47 @@ export class TcpClient {
 
     onData,
   }: TcpClientOptions) {
-    this.flightId = flightId;
-    this.port = port;
-    this.hostname = hostname;
-    this.intervalMs = intervalMs;
-    this.initialReconnectDelay = reconnectDelay;
-    this.reconnectDelay = reconnectDelay;
+    this._flightId = flightId;
+    this._port = port;
+    this._hostname = hostname;
+    this._intervalMs = intervalMs;
+    this._initialReconnectDelay = reconnectDelay;
+    this._reconnectDelay = reconnectDelay;
 
-    this.onData = onData;
+    this._onData = onData;
   }
 
   private reconnect() {
     // Force close any old connection
-    this.socket?.close();
+    this._socket?.close();
 
-    if (this.isIntentionallyClosed) return;
-    if (this.reconnectionTimeoutId) clearTimeout(this.reconnectionTimeoutId);
+    if (this._isIntentionallyClosed) return;
+    if (this._reconnectionTimeoutId) clearTimeout(this._reconnectionTimeoutId);
 
-    this.reconnectionTimeoutId = setTimeout(() => {
+    this._reconnectionTimeoutId = setTimeout(() => {
       // Reset stream buffer which will be meaningless after a new connection established
-      this.streamBuffer = new StreamBuffer();
+      this._streamBuffer = new StreamBuffer();
       this.connect();
 
       // Exponential backoff for resource optimization
-      this.reconnectDelay = Math.min(
-        this.reconnectDelay * 2,
+      this._reconnectDelay = Math.min(
+        this._reconnectDelay * 2,
         TCP_MAX_RECONNECT_DELAY_MS,
       );
-    }, this.reconnectDelay);
+    }, this._reconnectDelay);
   }
 
   public async connect() {
     try {
-      this.socket = await Bun.connect({
-        hostname: this.hostname,
-        port: this.port,
+      this._socket = await Bun.connect({
+        hostname: this._hostname,
+        port: this._port,
 
         socket: {
           data: (_, data) => {
             // Sync with the existing buffer stream
-            this.streamBuffer.append(data);
-            const packetBuffers = this.streamBuffer.extract();
+            this._streamBuffer.append(data);
+            const packetBuffers = this._streamBuffer.extract();
 
             // If valid packets exits, trigger listeners
             if (packetBuffers.length > 0) {
@@ -101,24 +101,24 @@ export class TcpClient {
               const latest = allParsed[allParsed.length - 1];
 
               // Trigger onData
-              this.onData(latest);
+              this._onData(latest);
             }
           },
           open: (socket) => {
             const subscriptionMessage = {
               type: "subscribe",
-              flightId: this.flightId,
-              intervalMs: this.intervalMs,
+              flightId: this._flightId,
+              intervalMs: this._intervalMs,
             } satisfies TelemetryTcpSubscriptionPayload;
 
             socket.write(JSON.stringify(subscriptionMessage));
 
             // Reset Exponential backoff on connection success
-            this.reconnectDelay = this.initialReconnectDelay;
+            this._reconnectDelay = this._initialReconnectDelay;
           },
           close: (socket, error) => {
             // TODO: Make error message more meaningful
-            this.onData({
+            this._onData({
               status: "CLOSED",
               message: "Connection is closed",
             });
@@ -126,7 +126,7 @@ export class TcpClient {
           },
           error: (socket, error) => {
             // TODO: Make error message more meaningful
-            this.onData({
+            this._onData({
               status: "ERROR",
               message: "Connection error.",
             });
@@ -136,7 +136,7 @@ export class TcpClient {
           // client-specific handlers
           end: (socket) => {
             // TODO: Make error message more meaningful
-            this.onData({
+            this._onData({
               status: "CLOSED",
               message: "Connection is closed by server",
             });
@@ -144,7 +144,7 @@ export class TcpClient {
           }, // connection closed by server
           timeout: (socket) => {
             // TODO: Make error message more meaningful
-            this.onData({
+            this._onData({
               status: "ERROR",
               message: "Connection timeout error",
             });
@@ -154,7 +154,7 @@ export class TcpClient {
       });
     } catch (error) {
       // TODO: Make error message more meaningful
-      this.onData({
+      this._onData({
         status: "ERROR",
         message: "Failed to create connection",
       });
@@ -163,8 +163,8 @@ export class TcpClient {
   }
 
   public async close() {
-    if (this.reconnectionTimeoutId) clearTimeout(this.reconnectionTimeoutId);
-    this.isIntentionallyClosed = true;
-    this.socket?.close();
+    if (this._reconnectionTimeoutId) clearTimeout(this._reconnectionTimeoutId);
+    this._isIntentionallyClosed = true;
+    this._socket?.close();
   }
 }
