@@ -1,0 +1,1 @@
+bun lint:types && bunx lint-staged

@@ -116,7 +116,7 @@ export class TcpClient {
             // Reset Exponential backoff on connection success
             this._reconnectDelay = this._initialReconnectDelay;
           },
-          close: (socket, error) => {
+          close: () => {
             // TODO: Make error message more meaningful
             this._onData({
               status: "CLOSED",
@@ -124,7 +124,7 @@ export class TcpClient {
             });
             this.reconnect();
           },
-          error: (socket, error) => {
+          error: () => {
             // TODO: Make error message more meaningful
             this._onData({
               status: "ERROR",
@@ -134,7 +134,7 @@ export class TcpClient {
           },
 
           // client-specific handlers
-          end: (socket) => {
+          end: () => {
             // TODO: Make error message more meaningful
             this._onData({
               status: "CLOSED",
@@ -142,7 +142,7 @@ export class TcpClient {
             });
             this.reconnect();
           }, // connection closed by server
-          timeout: (socket) => {
+          timeout: () => {
             // TODO: Make error message more meaningful
             this._onData({
               status: "ERROR",
@@ -152,7 +152,7 @@ export class TcpClient {
           }, // connection timed out
         },
       });
-    } catch (error) {
+    } catch {
       // TODO: Make error message more meaningful
       this._onData({
         status: "ERROR",

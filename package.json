@@ -4,10 +4,31 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "start": "bun run src/index.ts"
+    "start": "bun run src/index.ts",
+    "lint:code": "eslint .",
+    "lint:format": "prettier . --check",
+    "lint:types": "tsc --noEmit",
+    "lint": "bun lint:types  && bun lint:code && bun lint:format",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "**/*": [
+      "eslint",
+      "prettier --write --ignore-unknown"
+    ]
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@eslint/js": "^10.0.1",
+    "@eslint/json": "^1.2.0",
+    "@types/bun": "latest",
+    "eslint": "^10.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.4.0",
+    "husky": "^9.1.7",
+    "jiti": "^2.6.1",
+    "lint-staged": "^16.4.0",
+    "prettier": "3.8.1",
+    "typescript-eslint": "^8.57.2"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

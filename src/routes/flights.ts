@@ -8,7 +8,7 @@ export const getFlights: RouteHandler = async () => {
     return Response.json(flights, {
       status: response.status,
     });
-  } catch (error) {
+  } catch {
     return Response.json(
       { message: "Failed to fetch flights" },
       { status: 502 },
