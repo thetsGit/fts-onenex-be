@@ -25,7 +25,9 @@ export class StreamBuffer {
     while (this.buffer.length >= this.packetSize) {
       const startIdx = this.buffer.indexOf(this.startByte);
 
-      // If 'start byte' not found, reset the whole buffer, stop the finding
+      /**
+       * If 'start byte' not found, reset the whole buffer, stop the finding
+       */
       if (startIdx === -1) {
         this.buffer = Buffer.alloc(0);
         break;
@@ -33,18 +35,24 @@ export class StreamBuffer {
 
       const endIdx = startIdx + (this.packetSize - 1);
 
-      // If endIdx exceeds buffer length, stop the finding and wait for more buffers appended
+      /**
+       * If endIdx exceeds buffer length, stop the finding and wait for more buffers appended
+       */
       if (endIdx + 1 > this.buffer.length) {
         this.buffer = this.buffer.subarray(startIdx);
         break;
       }
 
-      // If 'end byte' is invalid, strip all the bytes including 'start byte'
+      /**
+       * If 'end byte' is invalid, strip all the bytes including 'start byte'
+       */
       const end = this.buffer[endIdx];
       if (end !== this.endByte) {
         this.buffer = this.buffer.subarray(startIdx + 1);
 
-        // If the left buffer length after stripping is less than 36, stop finding and wait for more buffers appended
+        /**
+         * If the left buffer length after stripping is less than 36, stop finding and wait for more buffers appended
+         */
         if (this.buffer.length < this.packetSize) {
           break;
         }
@@ -52,7 +60,9 @@ export class StreamBuffer {
         continue;
       }
 
-      // If a valid packet is found, extract it and strip it out of the global buffer
+      /**
+       * If a valid packet is found, extract it and also strip it out of the global buffer
+       */
 
       const packet = this.buffer.subarray(startIdx, endIdx + 1);
       this.buffer = this.buffer.subarray(endIdx + 1);

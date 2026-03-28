@@ -25,3 +25,9 @@ export type TelemetryTcpSubscriptionPayload = {
   flightId: string;
   intervalMs: number;
 };
+
+export type TelemetryResult = {
+  status: TelemetryStatus;
+  data?: TelemetryData;
+  message?: string;
+};

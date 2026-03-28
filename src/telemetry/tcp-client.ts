@@ -1,21 +1,16 @@
 import { FTS_TCP_HOSTNAME } from "@/config";
 
-import type {
-  TelemetryTcpResult,
-  TelemetryTcpSubscriptionPayload,
-} from "./types";
+import type { TelemetryResult, TelemetryTcpSubscriptionPayload } from "./types";
 
 import {
   TCP_SUBSCRIPTION_INTERVAL_MS,
   TCP_INITIAL_RECONNECT_DELAY_MS,
-  type TelemetryStatus,
   TCP_MAX_RECONNECT_DELAY_MS,
 } from "./constants";
 
-import { parsePacket, type ParsePacketReturn } from "./parser";
+import { parsePacket } from "./parser";
 
 import { StreamBuffer } from "./stream-buffer";
-import type { TelemetryData } from "@/types/entities";
 
 type TcpClientOptions = {
   hostname?: string;
@@ -24,8 +19,7 @@ type TcpClientOptions = {
   intervalMs?: TelemetryTcpSubscriptionPayload["intervalMs"];
   reconnectDelay?: number;
 
-  onData: (data: TelemetryData) => void;
-  onStatusChange: (status: TelemetryStatus, message: string) => void;
+  onData: (data: TelemetryResult) => void;
 };
 
 export class TcpClient {
@@ -35,7 +29,6 @@ export class TcpClient {
   private intervalMs: NonNullable<TcpClientOptions["intervalMs"]>;
 
   private onData: TcpClientOptions["onData"];
-  private onStatusChange: TcpClientOptions["onStatusChange"];
 
   private streamBuffer = new StreamBuffer();
 
@@ -55,7 +48,6 @@ export class TcpClient {
     reconnectDelay = TCP_INITIAL_RECONNECT_DELAY_MS,
 
     onData,
-    onStatusChange,
   }: TcpClientOptions) {
     this.flightId = flightId;
     this.port = port;
@@ -65,7 +57,6 @@ export class TcpClient {
     this.reconnectDelay = reconnectDelay;
 
     this.onData = onData;
-    this.onStatusChange = onStatusChange;
   }
 
   private reconnect() {
@@ -109,13 +100,8 @@ export class TcpClient {
 
               const latest = allParsed[allParsed.length - 1];
 
-              // If the latest packet is a valid one, trigger onData
-              if (latest.status === "VALID") {
-                this.onData(latest.data);
-              } else {
-                // If the latest packet is corrupted, trigger onStatusChange
-                this.onStatusChange(latest.status, latest.message);
-              }
+              // Trigger onData
+              this.onData(latest);
             }
           },
           open: (socket) => {
@@ -132,31 +118,46 @@ export class TcpClient {
           },
           close: (socket, error) => {
             // TODO: Make error message more meaningful
-            this.onStatusChange("CLOSED", "Connection is closed");
+            this.onData({
+              status: "CLOSED",
+              message: "Connection is closed",
+            });
             this.reconnect();
           },
           error: (socket, error) => {
             // TODO: Make error message more meaningful
-            this.onStatusChange("ERROR", "Connection error.");
+            this.onData({
+              status: "ERROR",
+              message: "Connection error.",
+            });
             this.reconnect();
           },
 
           // client-specific handlers
           end: (socket) => {
             // TODO: Make error message more meaningful
-            this.onStatusChange("CLOSED", "Connection is closed by server");
+            this.onData({
+              status: "CLOSED",
+              message: "Connection is closed by server",
+            });
             this.reconnect();
           }, // connection closed by server
           timeout: (socket) => {
             // TODO: Make error message more meaningful
-            this.onStatusChange("ERROR", "Connection timeout error");
+            this.onData({
+              status: "ERROR",
+              message: "Connection timeout error",
+            });
             this.reconnect();
           }, // connection timed out
         },
       });
     } catch (error) {
       // TODO: Make error message more meaningful
-      this.onStatusChange("ERROR", "Failed to create connection");
+      this.onData({
+        status: "ERROR",
+        message: "Failed to create connection",
+      });
       this.reconnect();
     }
   }
