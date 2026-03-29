@@ -1,8 +1,15 @@
-import { type Flight } from "./types/entities";
+import { MEMORY_CHECK_INTERVAL_MS, validateEnvironment } from "@/config";
 
-import { FLIGHTS_ENDPOINT } from "./config";
+import type { MemoryUsageSignal } from "@/types/supervisor";
 
-import { validateEnvironment } from "./validateEnv";
+import { withCors } from "@/middlewares";
+
+import { fallbackJson, upgradeToWSOrFallback } from "@/routes/general";
+import { getFlights } from "@/routes/flights";
+
+import { onWSMessage } from "@/ws";
+
+import { FlightManager, startTelemetryService } from "@/telemetry";
 
 // Validate environment variables at startup
 validateEnvironment();
@@ -12,29 +19,41 @@ const server = Bun.serve({
   routes: {
     // Proxy 'flights' endpoint
     "/api/flights": {
-      GET: async () => {
-        try {
-          const response = await fetch(FLIGHTS_ENDPOINT);
-          const data = (await response.json()) as Flight[];
-          return Response.json(data, { status: response.status });
-        } catch (error) {
-          return Response.json(
-            { message: "Failed to fetch flights" },
-            { status: 502 },
-          );
-        }
-      },
+      OPTIONS: withCors(() => new Response(null, { status: 204 })),
+      GET: withCors(getFlights),
     },
 
     // Wildcard route for all routes that start with "/api/" and aren't otherwise matched
-    "/api/*": Response.json({ message: "Not found" }, { status: 404 }),
+    "/api/*": fallbackJson,
   },
 
   // (optional) fallback for unmatched routes:
   // Required if Bun's version < 1.2.3
-  fetch(req) {
-    return new Response("Not Found", { status: 404 });
+  fetch: upgradeToWSOrFallback,
+
+  websocket: {
+    message: onWSMessage,
   },
 });
 
-console.log(`Server running at ${server.url}`);
+/**
+ * Launch the telemetry service at start up
+ */
+
+const flightManager = new FlightManager({ server });
+
+startTelemetryService(flightManager);
+
+/**
+ * Periodic memory usage report to supervisor for auto restart on memory limit hit
+ */
+setInterval(() => {
+  try {
+    process?.send?.({
+      type: "memory",
+      rss: process.memoryUsage().rss,
+    } satisfies MemoryUsageSignal);
+  } catch {
+    // Ignore, i.e, not running under supervisor
+  }
+}, MEMORY_CHECK_INTERVAL_MS);

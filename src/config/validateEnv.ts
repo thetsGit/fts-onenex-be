@@ -6,7 +6,14 @@ type RequiredEnvVars = {
 };
 
 const requiredVariables: RequiredEnvVars[] = [
-  { name: "FTS_API_URL", description: "Onenex's FTS API" },
+  { name: "FTS_API_BASE_URL", description: "Onenex's FTS source base API url" },
+  { name: "FTS_API_PORT", description: "Onenex's FTS source API port" },
+  { name: "FTS_TCP_HOSTNAME", description: "Onenex's FTS TCP server hostname" },
+  { name: "ALLOWED_ORIGINS", description: "CORS allowed origins" },
+  {
+    name: "MEMORY_LIMIT_MB",
+    description: "Memory limit in MB for auto-restart",
+  },
 ];
 
 export function validateEnvironment(): void {
@@ -27,5 +34,5 @@ export function validateEnvironment(): void {
     process.exit(1);
   }
 
-  console.log("All required environment variables are set.");
+  console.info("All required environment variables are set.");
 }

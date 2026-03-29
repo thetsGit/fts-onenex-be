@@ -6,3 +6,14 @@ export type Flight = {
   destination: string;
   telemetryPort: number;
 };
+
+export type TelemetryDetails = {
+  flightNumber: string;
+  packetNumber: number;
+  packetSize: number;
+  altitude: number;
+  speed: number;
+  acceleration: number;
+  thrust: number;
+  temperature: number;
+};
