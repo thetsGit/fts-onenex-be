@@ -10,7 +10,7 @@
     "lint:code": "eslint .",
     "lint:format": "prettier . --check",
     "lint:types": "tsc --noEmit",
-    "lint": "bun lint:types  && bun lint:code && bun lint:format",
+    "lint": "bun lint:types && bun lint:code && bun lint:format",
     "prepare": "husky"
   },
   "lint-staged": {

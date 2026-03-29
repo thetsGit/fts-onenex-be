@@ -1,0 +1,17 @@
+name: "Setup environment"
+description: "Setup Bun & install dependencies"
+inputs:
+  install-modules:
+    description: Install node_modules
+    default: "true"
+runs:
+  using: "composite"
+  steps:
+    - name: Bun Setup
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: latest
+    - name: Install modules
+      if: ${{ inputs.install-modules == 'true' }}
+      shell: bash
+      run: bun install --frozen-lockfile

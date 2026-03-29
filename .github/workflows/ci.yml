@@ -1,0 +1,53 @@
+name: CI
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-type:
+    name: Type checking
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Environment Prepare
+        uses: ./.github/actions/setup-environment
+      - name: Run typescript check
+        run: bun run lint:types
+
+  lint-code:
+    name: Code checking
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Environment Prepare
+        uses: ./.github/actions/setup-environment
+      - name: Run eslint
+        run: bun run lint:code
+
+  format-check:
+    name: Format checking
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Environment Prepare
+        uses: ./.github/actions/setup-environment
+      - name: Run prettier check
+        run: bun run lint:format
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Environment Prepare
+        uses: ./.github/actions/setup-environment
+      - name: Run tests
+        run: bun test
