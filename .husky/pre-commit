@@ -1,1 +1,3 @@
-bun run lint:types && bun test && bunx lint-staged
+bun run lint:types
+bun test
+bunx lint-staged
