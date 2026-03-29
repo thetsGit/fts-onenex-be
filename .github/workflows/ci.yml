@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Environment Prepare
-        uses: ./.github/actions/setup-environment
+        uses: ./.github/workflows/environment-prepare
       - name: Run typescript check
         run: bun run lint:types
 
@@ -26,7 +26,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Environment Prepare
-        uses: ./.github/actions/setup-environment
+        uses: ./.github/workflows/environment-prepare
       - name: Run eslint
         run: bun run lint:code
 
@@ -37,7 +37,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Environment Prepare
-        uses: ./.github/actions/setup-environment
+        uses: ./.github/workflows/environment-prepare
       - name: Run prettier check
         run: bun run lint:format
 
@@ -48,6 +48,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Environment Prepare
-        uses: ./.github/actions/setup-environment
+        uses: ./.github/workflows/environment-prepare
       - name: Run tests
         run: bun test
