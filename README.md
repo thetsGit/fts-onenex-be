@@ -162,7 +162,7 @@ FTS_API_PORT=4000
 FTS_TCP_HOSTNAME=fts.onenex.dev
 
 # CORS allowed origins (comma-separated)
-ALLOWED_ORIGINS=http://localhost:5173
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:4173
 
 # Memory limit for auto-restart (MB)
 MEMORY_LIMIT_MB=200
