@@ -1,4 +1,4 @@
-import { type TelemetryData } from "@/types/entities";
+import { type TelemetryDetails } from "@/types/entities";
 
 import { crc16 } from "@/core/crc";
 
@@ -10,7 +10,7 @@ export function buildPacket(
     endByte?: number;
     skipCrc?: boolean;
     crcOverride?: number;
-  } & Partial<TelemetryData>,
+  } & Partial<TelemetryDetails>,
 ) {
   const buf = Buffer.alloc(TELEMETRY_PACKET_SIZE);
   const o = overrides ?? {};

@@ -1,4 +1,6 @@
-import { validateEnvironment } from "@/config";
+import { MEMORY_CHECK_INTERVAL_MS, validateEnvironment } from "@/config";
+
+import type { MemoryUsageSignal } from "@/types/supervisor";
 
 import { withCors } from "@/middlewares";
 
@@ -41,3 +43,17 @@ const server = Bun.serve({
 const flightManager = new FlightManager({ server });
 
 startTelemetryService(flightManager);
+
+/**
+ * Periodic memory usage report to supervisor for auto restart on memory limit hit
+ */
+setInterval(() => {
+  try {
+    process?.send?.({
+      type: "memory",
+      rss: process.memoryUsage().rss,
+    } satisfies MemoryUsageSignal);
+  } catch {
+    // Ignore, i.e, not running under supervisor
+  }
+}, MEMORY_CHECK_INTERVAL_MS);

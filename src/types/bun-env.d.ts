@@ -5,5 +5,6 @@ declare module "bun" {
     readonly FTS_API_PORT: string;
     readonly FTS_TCP_HOSTNAME: string;
     readonly ALLOWED_ORIGINS: string;
+    readonly MEMORY_LIMIT_MB: string;
   }
 }

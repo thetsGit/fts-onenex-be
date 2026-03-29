@@ -9,7 +9,9 @@ export async function startTelemetryService(flightManager: FlightManager) {
     try {
       const { flights } = await getFlightsService();
 
-      flightManager.sync(flights);
+      if (flights) {
+        flightManager.sync(flights);
+      }
     } catch (error) {
       console.error({ error });
     }

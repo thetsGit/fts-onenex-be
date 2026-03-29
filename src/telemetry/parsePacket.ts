@@ -1,6 +1,6 @@
 import { crc16 } from "@/core/crc";
 
-import type { TelemetryData } from "@/types/entities";
+import type { TelemetryDetails } from "@/types/entities";
 
 import {
   TELEMETRY_END_BYTE,
@@ -16,7 +16,7 @@ export type ParsePacketReturn =
     }
   | {
       status: Extract<TelemetryStatus, "VALID">;
-      data: TelemetryData;
+      data: TelemetryDetails;
     };
 
 export function parsePacket(buffer: Uint8Array): ParsePacketReturn {

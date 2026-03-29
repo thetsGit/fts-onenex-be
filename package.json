@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "start": "bun run src/index.ts",
+    "dev:supervised": "bun run --watch src/supervisor/index.ts",
+    "start": "bun run src/supervisor/index.ts",
+    "start:standalone": "bun run src/index.ts",
     "lint:code": "eslint .",
     "lint:format": "prettier . --check",
     "lint:types": "tsc --noEmit",

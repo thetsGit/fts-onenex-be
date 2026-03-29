@@ -1,5 +1,7 @@
 import { type Flight } from "@/types/entities";
 
+import { mbToBytes } from "@/core/file";
+
 /**
  * Http server
  */
@@ -32,3 +34,10 @@ export const getWsTelemetryTopic = (flightId: Flight["id"]) =>
   `flight-id-${flightId}`;
 
 export * from "./validateEnv";
+
+/**
+ * For auto-restart on memory limit exceeds
+ */
+export const MEMORY_CHECK_INTERVAL_MS = 5000;
+export const MEMORY_LIMIT_BYTES = mbToBytes(Number(Bun.env.MEMORY_LIMIT_MB));
+export const RESTART_DELAY_MS = 1000;

@@ -7,7 +7,7 @@ export type Flight = {
   telemetryPort: number;
 };
 
-export type TelemetryData = {
+export type TelemetryDetails = {
   flightNumber: string;
   packetNumber: number;
   packetSize: number;

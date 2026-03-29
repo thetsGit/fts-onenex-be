@@ -1,4 +1,4 @@
-import { type TelemetryData } from "@/types/entities";
+import { type TelemetryDetails } from "@/types/entities";
 
 import type { TelemetryStatus } from "./constants";
 
@@ -10,6 +10,6 @@ export type TelemetryTcpSubscriptionPayload = {
 
 export type TelemetryResult = {
   status: TelemetryStatus;
-  data?: TelemetryData;
+  data?: TelemetryDetails;
   message?: string;
 };
