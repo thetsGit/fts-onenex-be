@@ -1,0 +1,57 @@
+name: Deploy
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish the docker image to GHCR
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: |
+            ghcr.io/thetsgit/fts-onenex-be:${{ github.event.release.tag_name }}
+            ghcr.io/thetsgit/fts-onenex-be:latest
+
+      - name: Deploy to Digital Ocean
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cat > /app/fts-backend/.env << EOF
+            FTS_API_BASE_URL=${{ vars.FTS_API_BASE_URL }}
+            FTS_API_PORT=${{ vars.FTS_API_PORT }}
+            FTS_TCP_HOSTNAME=${{ vars.FTS_TCP_HOSTNAME }}
+            ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}
+            MEMORY_LIMIT_MB=${{ vars.MEMORY_LIMIT_MB }}
+            EOF
+
+            cat > /app/fts-backend/docker-compose.yml << EOF
+            services:
+              api:
+                image: ghcr.io/thetsgit/fts-onenex-be:latest
+                container_name: fts-api
+                restart: always
+                ports:
+                  - "3000:3000"
+                env_file:
+                  - .env
+            EOF
+
+            cd /app/fts-backend
+            docker compose pull
+            docker compose up -d
