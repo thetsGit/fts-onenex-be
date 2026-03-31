@@ -1,0 +1,14 @@
+node_modules
+Dockerfile*
+.dockerignore
+.git
+.gitignore
+README.md
+LICENSE
+.vscode
+.github
+.husky
+.env
+.env.*
+*.md
+tests
